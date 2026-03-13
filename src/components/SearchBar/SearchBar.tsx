@@ -1,47 +1,45 @@
-import toast from 'react-hot-toast';
-import styles from './SearchBar.module.css';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import s from './SearchBar.module.css';
 
 interface SearchBarProps {
   onSubmit: (query: string) => void;
 }
 
 const SearchBar = ({ onSubmit }: SearchBarProps) => {
-  const handleAction = (formData: FormData) => {
-    const query = formData.get('query') as string;
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-    if (query.trim() === '') {
-      toast.error('Please enter your search query.');
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    const normalizedQuery = searchQuery.trim();
+
+    if (normalizedQuery === "") {
+      alert("Будь ласка, введіть текст для пошуку!");
       return;
     }
 
-    onSubmit(query);
+    onSubmit(normalizedQuery);
   };
 
   return (
-    <header className={styles.header}>
-      <div className={styles.container}>
-        <a
-          className={styles.link}
-          href="https://www.themoviedb.org/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by TMDB
-        </a>
-        <form action={handleAction} className={styles.form}>
-          <input
-            className={styles.input}
-            type="text"
-            name="query"
-            autoComplete="off"
-            placeholder="Search movies..."
-            autoFocus
-          />
-          <button className={styles.button} type="submit">
-            Search
-          </button>
-        </form>
-      </div>
+    <header className={s.header}>
+      <form className={s.form} onSubmit={handleSubmit}>
+        <input
+          value={searchQuery}
+          onChange={handleChange}
+          className={s.input}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Пошук фільмів..."
+        />
+        <button type="submit" className={s.button}>
+          Пошук
+        </button>
+      </form>
     </header>
   );
 };

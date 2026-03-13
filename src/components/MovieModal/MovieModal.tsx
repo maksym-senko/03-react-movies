@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import type { Movie } from '../../types/movie';
 import css from './MovieModal.module.css';
 
@@ -8,51 +7,41 @@ interface MovieModalProps {
   onClose: () => void;
 }
 
-const modalRoot = document.querySelector('#modal-root') as HTMLElement;
-
 const MovieModal = ({ movie, onClose }: MovieModalProps) => {
   useEffect(() => {
-    if (!movie) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Escape') onClose();
     };
-
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      document.body.style.overflow = 'auto';
       window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'auto';
     };
-  }, [movie, onClose]);
+  }, [onClose]);
 
   if (!movie) return null;
 
-  return createPortal(
-    <div className={css.backdrop} onClick={onClose} role="dialog" aria-modal="true">
-      <div className={css.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={css.closeButton} onClick={onClose} aria-label="Close modal">
-          &times;
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.currentTarget === e.target) onClose();
+  };
+
+  const imageUrl = movie.backdrop_path || movie.poster_path 
+    ? `https://image.tmdb.org/t/p/w780${movie.backdrop_path || movie.poster_path}`
+    : 'https://via.placeholder.com/780x440?text=No+Image';
+
+  return (
+    <div className={css.backdrop} onClick={handleBackdropClick}>
+      <div className={css.content}>
+        <img src={imageUrl} alt={movie.title} />
+        <h2>{movie.title}</h2>
+        <p>{movie.overview}</p>
+        <button type="button" onClick={onClose} className={css.closeBtn}>
+          Закрити
         </button>
-        <img
-          src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
-          alt={movie.title}
-          className={css.image}
-        />
-        <div className={css.content}>
-          <h2>{movie.title}</h2>
-          <p>{movie.overview}</p>
-          <p>
-            <strong>Release Date:</strong> {movie.release_date}
-          </p>
-          <p>
-            <strong>Rating:</strong> {movie.vote_average.toFixed(1)}/10
-          </p>
-        </div>
       </div>
-    </div>,
-    modalRoot
+    </div>
   );
 };
 
